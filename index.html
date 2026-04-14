@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unicorn Forest</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a3d1a; overflow: hidden; font-family: Georgia, serif; }
+
+    #ui {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .panel {
+      background: rgba(0,0,0,0.6);
+      border: 2px solid rgba(255,215,0,0.5);
+      border-radius: 10px;
+      padding: 8px 14px;
+      color: #fff;
+      font-size: 1em;
+      margin-bottom: 7px;
+      min-width: 170px;
+    }
+    #msg { color: #ffd700; font-size: 0.9em; min-height: 18px; }
+
+    #instructions {
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      pointer-events: none;
+      background: rgba(0,0,0,0.5);
+      color: rgba(255,255,255,0.75);
+      padding: 7px 18px;
+      border-radius: 20px;
+      font-family: Arial, sans-serif;
+      font-size: 0.82em;
+      white-space: nowrap;
+    }
+
+    /* ── Win overlay ── */
+    #win-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(60,0,110,0.93) 0%, rgba(0,0,0,0.97) 100%);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #win-screen.show { display: flex; }
+
+    .win-title {
+      font-size: clamp(1.8em,4vw,2.8em);
+      color: gold;
+      text-shadow: 0 0 24px #ffd700, 0 0 48px gold;
+      margin-bottom: 8px;
+      text-align: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .win-sub {
+      font-size: 1.05em;
+      color: #d4aaff;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    #win-stats { color: #aaa; font-size: 0.9em; margin-bottom: 26px; text-align: center; }
+
+    .choose-label {
+      font-size: 1.2em;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .guardian-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      max-width: 480px;
+    }
+    .gbtn {
+      padding: 12px 28px;
+      font-size: 1.05em;
+      font-family: Georgia, serif;
+      cursor: pointer;
+      background: linear-gradient(135deg, #6a0dad, #9b59b6);
+      color: #fff;
+      border: 2px solid gold;
+      border-radius: 30px;
+      box-shadow: 0 0 14px rgba(155,89,182,0.5);
+      transition: all 0.18s;
+    }
+    .gbtn:hover {
+      transform: scale(1.08);
+      background: linear-gradient(135deg, #9b59b6, #ffd700);
+      color: #1a003a;
+      box-shadow: 0 0 24px rgba(255,215,0,0.7);
+    }
+
+    /* Chosen guardian reveal */
+    #chosen { display: none; flex-direction: column; align-items: center; text-align: center; }
+    #chosen.show { display: flex; }
+
+    .chosen-label { font-size: 1.4em; color: #d4aaff; margin-bottom: 12px; }
+    .guardian-name {
+      font-size: clamp(2.4em,6vw,4em);
+      color: gold;
+      text-shadow: 0 0 20px gold;
+      margin-bottom: 16px;
+      animation: glow 1.4s ease-in-out infinite alternate;
+    }
+    .guardian-desc {
+      font-size: 0.95em;
+      color: #bbb;
+      max-width: 380px;
+      line-height: 1.65;
+      margin-bottom: 26px;
+    }
+    .again-btn {
+      padding: 10px 24px;
+      font-size: 0.95em;
+      font-family: Georgia, serif;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1a5a1a, #3a8a30);
+      color: #fff;
+      border: 2px solid #7fff00;
+      border-radius: 25px;
+      transition: all 0.18s;
+    }
+    .again-btn:hover { transform: scale(1.05); box-shadow: 0 0 14px rgba(127,255,0,0.5); }
+
+    @keyframes pulse {
+      0%,100% { text-shadow: 0 0 20px gold, 0 0 40px gold; }
+      50%      { text-shadow: 0 0 30px gold, 0 0 60px gold, 0 0 90px orange; }
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px gold; }
+      to   { text-shadow: 0 0 30px gold, 0 0 55px orange, 0 0 80px gold; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HUD -->
+<div id="ui">
+  <div class="panel" id="herd-count">🦄 Herd: 1 / 8</div>
+  <div class="panel" id="msg">✨ Find the unicorns hidden in the forest!</div>
+</div>
+<div id="instructions">⬆⬇⬅➡ or W A S D to move &nbsp;|&nbsp; Find all 7 unicorns 🦄 &nbsp;|&nbsp; Reach the King's Castle 🏰</div>
+
+<!-- Win Overlay -->
+<div id="win-screen">
+  <div id="selection">
+    <div class="win-title">✨ You Reached the King's Castle! ✨</div>
+    <div class="win-sub">Your glorious unicorn herd has arrived!</div>
+    <div id="win-stats"></div>
+    <div class="choose-label">Choose your Guardian name:</div>
+    <div class="guardian-grid">
+      <button class="gbtn" onclick="chooseGuardian('Creamy','🌸')">🌸 Creamy</button>
+      <button class="gbtn" onclick="chooseGuardian('Lilly','🌺')">🌺 Lilly</button>
+      <button class="gbtn" onclick="chooseGuardian('Tio','⭐')">⭐ Tio</button>
+      <button class="gbtn" onclick="chooseGuardian('Starspell','✨')">✨ Starspell</button>
+    </div>
+  </div>
+  <div id="chosen">
+    <div class="chosen-label">Welcome, Guardian of Unicorn Forest!</div>
+    <div class="guardian-name" id="gname"></div>
+    <div class="guardian-desc" id="gdesc"></div>
+    <button class="again-btn" onclick="restartGame()">🌿 Play Again</button>
+  </div>
+</div>
+
+<script src="lib/pixi.min.js"></script>
+<script>
+// ─────────────────────────────────────────────
+//  UNICORN FOREST  —  PixiJS single-page game
+// ─────────────────────────────────────────────
+
+/**
+ * Draw a star polygon on a PIXI.Graphics object.
+ * This replaces the missing `drawStar` method in the bundled PixiJS build.
+ * @param {PIXI.Graphics} g       - Graphics context to draw on
+ * @param {number}        x       - Centre x
+ * @param {number}        y       - Centre y
+ * @param {number}        points  - Number of star points
+ * @param {number}        outerR  - Outer (tip) radius
+ * @param {number}        innerR  - Inner (valley) radius
+ */
+function drawStarShape(g, x, y, points, outerR, innerR) {
+  const pts = [];
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (Math.PI / points) * i - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    pts.push(x + Math.cos(angle) * r, y + Math.sin(angle) * r);
+  }
+  g.drawPolygon(pts);
+}
+
+const WORLD_W          = 4200;
+const WORLD_H          = () => Math.max(window.innerHeight, 640);
+const NUM_HIDDEN       = 7;
+const SPEED            = 3.5;
+const DETECT_R         = 115;
+const HERD_DELAY       = 14;    // frames of trail lag per follower
+const CASTLE_X         = WORLD_W - 380;
+const CASTLE_REACH     = 180;
+const PLAYER_START_X   = 180;   // player spawn position
+const HISTORY_LIMIT    = 1200;  // max entries kept in prevPositions ring-buffer
+const MSG_DURATION_MS  = 3500;  // how long a transient HUD message stays visible
+
+const GUARDIAN_DESCS = {
+  Creamy:    'Gentle and nurturing, Creamy has a golden mane that glows like the morning sun. She heals all who enter the forest with her warm presence.',
+  Lilly:     'Lilly runs faster than the wind and her hooves leave a trail of flowers. She is the guardian of growth and new beginnings.',
+  Tio:       'Ancient and wise, Tio has seen a thousand seasons. His starlight horn can illuminate even the darkest forest path.',
+  Starspell: 'Starspell weaves magic into every step. Her presence fills the forest with wonder and her spell protects all unicorns.',
+};
+
+// ── State ────────────────────────────────────
+let app, world, bgLayer, midLayer, entityLayer, fgLayer;
+let player, herdFollowers, hiddenUnicorns, prevPositions;
+let herdCount, gameWon, frameCount;
+const keys = {};
+
+window.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+});
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// ── Seeded RNG ───────────────────────────────
+/**
+ * Returns a deterministic pseudo-random number generator seeded with `seed`.
+ * Uses a 32-bit Linear Congruential Generator (Knuth parameters).
+ * Consistent seed values ensure the same world layout every run.
+ */
+function mkRng(seed) {
+  let s = seed >>> 0;
+  return () => { s = Math.imul(s, 1664525) + 1013904223 | 0; return (s >>> 0) / 4294967295; };
+}
+
+// ── Drawing helpers ───────────────────────────
+
+function buildGround(wh) {
+  const g = new PIXI.Graphics();
+  g.beginFill(0x2a6818); g.drawRect(0, 0, WORLD_W, wh); g.endFill();
+
+  const patches = [0x347520, 0x285f14, 0x3c7d28, 0x205010, 0x44882e];
+  const rng = mkRng(42);
+  for (let i = 0; i < 230; i++) {
+    const x = rng() * WORLD_W, y = rng() * wh;
+    g.beginFill(patches[Math.floor(rng() * patches.length)], 0.45);
+    g.drawEllipse(x, y, 40 + rng()*110, 25 + rng()*70);
+    g.endFill();
+  }
+  // Small flowers
+  const fc = [0xFFB6C1, 0xFFFFAA, 0xFF8C69, 0xCCFFCC];
+  for (let i = 0; i < 120; i++) {
+    const x = rng() * WORLD_W, y = rng() * wh;
+    g.beginFill(fc[Math.floor(rng() * fc.length)], 0.7);
+    g.drawCircle(x, y, 2 + rng() * 3);
+    g.endFill();
+  }
+  return g;
+}
+
+function buildPath(wh) {
+  const g = new PIXI.Graphics();
+  g.lineStyle(28, 0x8B7355, 0.28);
+  const cy = wh / 2;
+  g.moveTo(80, cy);
+  g.bezierCurveTo(900, cy + 90, 1600, cy - 70, 2400, cy + 55);
+  g.bezierCurveTo(2900, cy + 90, 3300, cy - 45, CASTLE_X + 110, wh / 2);
+  return g;
+}
+
+function buildTree(scale) {
+  const s = scale;
+  const g = new PIXI.Graphics();
+  // shadow
+  g.beginFill(0x000000, 0.18); g.drawEllipse(0, 6*s, 18*s, 7*s); g.endFill();
+  // trunk
+  g.beginFill(0x6B4226); g.drawRect(-5*s, -8*s, 10*s, 20*s); g.endFill();
+  // foliage rings (dark → light)
+  g.beginFill(0x1a5c0a); g.drawCircle(0, -34*s, 26*s); g.endFill();
+  g.beginFill(0x2d7a18); g.drawCircle(-7*s, -30*s, 21*s); g.drawCircle(7*s, -31*s, 23*s); g.endFill();
+  g.beginFill(0x3d8f22); g.drawCircle(0, -41*s, 19*s); g.endFill();
+  g.beginFill(0x50a030, 0.6); g.drawCircle(-4*s, -47*s, 10*s); g.endFill();
+  return g;
+}
+
+function populateTrees(container, wh) {
+  const rng = mkRng(123);
+  const cy = wh / 2;
+  const positions = [];
+
+  // Main forest
+  for (let i = 0; i < 95; i++) {
+    const x = 220 + rng() * (WORLD_W - 800);
+    const y = rng() * wh;
+    if (Math.abs(y - cy) < 70 && x > 350 && x < WORLD_W - 550) { i--; continue; }
+    positions.push({ x, y, s: 0.65 + rng() * 0.65 });
+  }
+  // Dense border trees
+  for (let i = 0; i < 45; i++) {
+    positions.push({ x: 30 + rng()*160, y: rng() * wh, s: 0.7 + rng()*0.5 });
+  }
+
+  // Sort by y so trees overlap naturally
+  positions.sort((a, b) => a.y - b.y);
+  positions.forEach(({ x, y, s }) => {
+    const t = buildTree(s); t.x = x; t.y = y; container.addChild(t);
+  });
+}
+
+function buildCastle(wh) {
+  const cx = CASTLE_X, cy = wh / 2 - 90;
+  const w = 230, h = 165;
+  const root = new PIXI.Container();
+  const g = new PIXI.Graphics();
+
+  // Ground shadow
+  g.beginFill(0x000000, 0.3); g.drawEllipse(cx+w/2, cy+h+12, w/2+22, 16); g.endFill();
+
+  // Main wall
+  g.beginFill(0x888888); g.drawRect(cx, cy, w, h); g.endFill();
+  // Stone texture lines
+  g.lineStyle(1, 0x666666, 0.45);
+  for (let row = 0; row < h; row += 20) {
+    const offset = (row % 40 === 0) ? 0 : 10;
+    for (let col = offset; col < w; col += 20) g.drawRect(cx+col+1, cy+row+1, 18, 18);
+  }
+  g.lineStyle(0);
+
+  // Left tower
+  g.beginFill(0x787878); g.drawRect(cx-32, cy-45, 52, h+45); g.endFill();
+  for (let i = 0; i < 4; i++) { g.beginFill(0x787878); g.drawRect(cx-32+i*13, cy-60, 10, 16); g.endFill(); }
+
+  // Right tower
+  g.beginFill(0x787878); g.drawRect(cx+w-20, cy-45, 52, h+45); g.endFill();
+  for (let i = 0; i < 4; i++) { g.beginFill(0x787878); g.drawRect(cx+w-20+i*13, cy-60, 10, 16); g.endFill(); }
+
+  // Battlements
+  for (let i = 0; i < 9; i++) { g.beginFill(0x888888); g.drawRect(cx+4+i*25, cy-22, 16, 22); g.endFill(); }
+
+  // Gate
+  g.beginFill(0x3d2b1f); g.drawRect(cx+w/2-26, cy+h-72, 52, 72); g.endFill();
+  g.beginFill(0x2a1e12); g.drawEllipse(cx+w/2, cy+h-72, 26, 14); g.endFill();
+  g.lineStyle(3, 0x5a3a22, 0.9);
+  for (let i = 0; i < 3; i++) {
+    g.moveTo(cx+w/2-18+i*16, cy+h-72); g.lineTo(cx+w/2-18+i*16, cy+h);
+  }
+  g.lineStyle(0);
+
+  // Windows
+  g.beginFill(0x1a105e); g.drawRect(cx+28, cy+22, 26, 36); g.drawRect(cx+w-54, cy+22, 26, 36); g.endFill();
+  g.lineStyle(2, 0x3535a0);
+  g.moveTo(cx+28, cy+40); g.lineTo(cx+54, cy+40); g.moveTo(cx+41, cy+22); g.lineTo(cx+41, cy+58);
+  g.moveTo(cx+w-54, cy+40); g.lineTo(cx+w-28, cy+40); g.moveTo(cx+w-41, cy+22); g.lineTo(cx+w-41, cy+58);
+  g.lineStyle(0);
+
+  root.addChild(g);
+
+  // Flags
+  [cx-6, cx+w+6].forEach(fx => {
+    const f = new PIXI.Graphics();
+    f.lineStyle(2, 0x555555); f.moveTo(fx, cy-60); f.lineTo(fx, cy-92); f.lineStyle(0);
+    f.beginFill(0x9b1a9b);
+    f.drawPolygon([fx, cy-92, fx+20, cy-80, fx, cy-68]);
+    f.endFill();
+    root.addChild(f);
+  });
+
+  // Label
+  const txt = new PIXI.Text("King's Castle", new PIXI.TextStyle({ fontFamily:'Georgia', fontSize:15, fill:0xffd700, fontWeight:'bold' }));
+  txt.anchor.set(0.5, 0); txt.x = cx+w/2; txt.y = cy+h+20;
+  root.addChild(txt);
+
+  // Entrance glow
+  const glow = new PIXI.Graphics();
+  glow.beginFill(0xffd700, 0.08); glow.drawCircle(cx+w/2, cy+h-30, 120); glow.endFill();
+  root.addChild(glow);
+
+  return root;
+}
+
+function buildUnicorn({ bodyColor=0xFFFFF0, hornColor=0xFFD700, maneColors=[0xFF69B4,0xFF6347,0x9370DB,0x00CED1], isPlayer=false } = {}) {
+  const g = new PIXI.Graphics();
+
+  // Shadow
+  g.beginFill(0x000000, 0.18); g.drawEllipse(0, 22, 22, 7); g.endFill();
+  // Body
+  g.beginFill(bodyColor); g.drawEllipse(0, 4, 22, 13); g.endFill();
+  // Neck
+  g.beginFill(bodyColor); g.drawEllipse(17, -4, 8, 10); g.endFill();
+  // Head
+  g.beginFill(bodyColor); g.drawEllipse(24, -11, 11, 9); g.endFill();
+  // Muzzle
+  g.beginFill(bodyColor); g.drawEllipse(32, -8, 6, 5); g.endFill();
+  // Horn
+  g.beginFill(hornColor); g.moveTo(24,-19); g.lineTo(29,-34); g.lineTo(34,-19); g.closePath(); g.endFill();
+  g.lineStyle(1, 0xFFFFAA, 0.6); g.moveTo(26,-31); g.lineTo(32,-21); g.lineStyle(0);
+  // Eye
+  g.beginFill(0x222222); g.drawCircle(26,-12,2.5); g.endFill();
+  g.beginFill(0xFFFFFF); g.drawCircle(27,-13,0.8); g.endFill();
+  // Legs
+  const legX = [-13,-4,7,16];
+  g.beginFill(bodyColor); legX.forEach(x => g.drawRect(x, 15, 7, 18)); g.endFill();
+  // Hooves
+  g.beginFill(0xB0B0B0); legX.forEach(x => g.drawRect(x, 31, 7, 4)); g.endFill();
+  // Mane
+  maneColors.forEach((c,i) => { g.beginFill(c, 0.9); g.drawEllipse((15-i*5), (-13+i*2), 6, 3.5); g.endFill(); });
+  // Tail
+  maneColors.forEach((c,i) => { g.beginFill(c, 0.9); g.drawEllipse((-21-i*4), (i*5-4), 5, 4); g.endFill(); });
+  // Player star badge
+  if (isPlayer) {
+    g.beginFill(0xFFEE00, 0.35); drawStarShape(g, 0, 4, 5, 8, 4); g.endFill();
+  }
+  return g;
+}
+
+function buildSparkle() {
+  const g = new PIXI.Graphics();
+  g.beginFill(0xFFD700, 0.85); drawStarShape(g, 0, 0, 5, 9, 4); g.endFill();
+  g.beginFill(0xFFFFFF, 0.6);  drawStarShape(g, 0, 0, 4, 4, 2); g.endFill();
+  return g;
+}
+
+// ── Burst effect ──────────────────────────────
+function spawnBurst(x, y) {
+  const b = new PIXI.Graphics();
+  b.x = x; b.y = y;
+  entityLayer.addChild(b);
+  let f = 0;
+  const tick = () => {
+    f++;
+    b.clear();
+    const alpha = Math.max(0, 1 - f/22);
+    b.beginFill(0xFFD700, alpha); drawStarShape(b, 0, 0, 8, 52+f*3, 20+f*2); b.endFill();
+    if (f < 22) requestAnimationFrame(tick); else entityLayer.removeChild(b);
+  };
+  tick();
+}
+
+// ── Spawn helpers ─────────────────────────────
+function spawnPlayer(wh) {
+  const sprite = buildUnicorn({ isPlayer: true });
+  sprite.x = PLAYER_START_X; sprite.y = wh / 2;
+  const glow = new PIXI.Graphics();
+  glow.beginFill(0xFFD700, 0.12); glow.drawCircle(0, 0, 42); glow.endFill();
+  glow.x = sprite.x; glow.y = sprite.y;
+  entityLayer.addChild(glow);
+  entityLayer.addChild(sprite);
+  return { sprite, glow, x: sprite.x, y: sprite.y };
+}
+
+const UNICORN_CONFIGS = [
+  { bodyColor:0xFFCCE5, hornColor:0xFF69B4, maneColors:[0xFF1493,0xFF69B4,0xFFB6C1,0xFF99CC] },
+  { bodyColor:0xCCE5FF, hornColor:0x4169E1, maneColors:[0x0000CD,0x4169E1,0x87CEEB,0x00BFFF] },
+  { bodyColor:0xCCFFC8, hornColor:0x228B22, maneColors:[0x006400,0x228B22,0x7CFC00,0x90EE90] },
+  { bodyColor:0xFFE5CC, hornColor:0xFF8C00, maneColors:[0xFF4500,0xFF8C00,0xFFA500,0xFFD700] },
+  { bodyColor:0xE5CCFF, hornColor:0x8B008B, maneColors:[0x4B0082,0x8B008B,0x9932CC,0xDA70D6] },
+  { bodyColor:0xFFFFCC, hornColor:0xDAA520, maneColors:[0xB8860B,0xDAA520,0xFFD700,0xFFF68F] },
+  { bodyColor:0xCCFFF5, hornColor:0x008B8B, maneColors:[0x008080,0x008B8B,0x20B2AA,0x48D1CC] },
+];
+
+function spawnHiddenUnicorns(wh) {
+  const rng = mkRng(77);
+  const zones = [[400,850],[800,1250],[1200,1650],[1600,2050],[2000,2450],[2350,2800],[2700,3200]];
+  const list = [];
+  zones.forEach((zone, i) => {
+    const x = zone[0] + rng() * (zone[1] - zone[0]);
+    const y = 100 + rng() * (wh - 200);
+    const sprite = buildUnicorn(UNICORN_CONFIGS[i]);
+    sprite.x = x; sprite.y = y; sprite.alpha = 0;
+    const sparkle = buildSparkle();
+    sparkle.x = x; sparkle.y = y - 22;
+    entityLayer.addChild(sparkle);
+    entityLayer.addChild(sprite);
+    list.push({ sprite, sparkle, x, y, found: false });
+  });
+  return list;
+}
+
+// ── Init ──────────────────────────────────────
+function initGame() {
+  if (app) { app.destroy(true); document.querySelector('canvas')?.remove(); }
+
+  const wh = WORLD_H();
+  herdCount  = 1;
+  gameWon    = false;
+  frameCount = 0;
+  herdFollowers  = [];
+  hiddenUnicorns = [];
+
+  // Fill position history buffer starting at the player spawn position
+  const historyLen = (NUM_HIDDEN + 2) * HERD_DELAY + 60;
+  prevPositions = Array.from({ length: historyLen }, () => ({ x: PLAYER_START_X, y: wh / 2 }));
+
+  app = new PIXI.Application({
+    width: window.innerWidth,
+    height: window.innerHeight,
+    backgroundColor: 0x2a6818,
+    resizeTo: window,
+    antialias: true,
+  });
+  document.body.appendChild(app.view);
+
+  world       = new PIXI.Container();
+  bgLayer     = new PIXI.Container();
+  midLayer    = new PIXI.Container();
+  entityLayer = new PIXI.Container();
+  fgLayer     = new PIXI.Container();
+  world.addChild(bgLayer, midLayer, entityLayer, fgLayer);
+  app.stage.addChild(world);
+
+  bgLayer.addChild(buildGround(wh));
+  bgLayer.addChild(buildPath(wh));
+  populateTrees(midLayer, wh);
+  entityLayer.addChild(buildCastle(wh));
+
+  hiddenUnicorns = spawnHiddenUnicorns(wh);
+  player = spawnPlayer(wh);
+
+  updateHUD();
+  setMsg('✨ Find the unicorns hidden in the forest!');
+
+  app.ticker.add(gameLoop);
+}
+
+// ── Game loop ─────────────────────────────────
+function gameLoop(delta) {
+  if (gameWon) return;
+  frameCount++;
+  const wh = WORLD_H();
+
+  // ── Input
+  let dx = 0, dy = 0;
+  if (keys['ArrowLeft']  || keys['KeyA']) dx -= 1;
+  if (keys['ArrowRight'] || keys['KeyD']) dx += 1;
+  if (keys['ArrowUp']    || keys['KeyW']) dy -= 1;
+  if (keys['ArrowDown']  || keys['KeyS']) dy += 1;
+  if (dx && dy) { dx *= 0.707; dy *= 0.707; }
+  dx *= SPEED; dy *= SPEED;
+
+  player.x = Math.max(30, Math.min(WORLD_W - 30, player.x + dx));
+  player.y = Math.max(30, Math.min(wh - 30,    player.y + dy));
+  player.sprite.x = player.x;
+  player.sprite.y = player.y;
+  player.glow.x   = player.x;
+  player.glow.y   = player.y;
+
+  if (dx > 0.1)  player.sprite.scale.x =  1;
+  if (dx < -0.1) player.sprite.scale.x = -1;
+
+  // ── Record position history
+  prevPositions.push({ x: player.x, y: player.y });
+  if (prevPositions.length > HISTORY_LIMIT) prevPositions.shift();
+
+  // ── Move herd followers
+  herdFollowers.forEach((f, i) => {
+    const offset = (i + 1) * HERD_DELAY;
+    const idx = Math.max(0, prevPositions.length - 1 - offset);
+    const tgt = prevPositions[idx];
+    const ox = tgt.x - f.x, oy = tgt.y - f.y;
+    f.x += ox * 0.2; f.y += oy * 0.2;
+    f.sprite.x = f.x; f.sprite.y = f.y;
+    if (ox > 1)  f.sprite.scale.x =  1;
+    if (ox < -1) f.sprite.scale.x = -1;
+  });
+
+  // ── Hidden unicorn detection
+  hiddenUnicorns.forEach((u, i) => {
+    if (u.found) return;
+    u.sparkle.rotation += 0.05;
+    u.sparkle.alpha = 0.45 + 0.55 * Math.sin(frameCount * 0.1 + i * 1.2);
+    const dist = Math.hypot(player.x - u.x, player.y - u.y);
+    u.sprite.alpha = dist < DETECT_R * 2.2 ? Math.min(1, u.sprite.alpha + 0.04) : Math.max(0, u.sprite.alpha - 0.015);
+    if (dist < DETECT_R) joinHerd(u);
+  });
+
+  // ── Camera — smooth follow
+  const sw = app.screen.width, sh = app.screen.height;
+  const tx = Math.min(0, Math.max(-(WORLD_W - sw), sw / 2 - player.x));
+  const ty = Math.min(0, Math.max(-(wh - sh),       sh / 2 - player.y));
+  world.x += (tx - world.x) * 0.1;
+  world.y += (ty - world.y) * 0.1;
+
+  // ── Castle check
+  const castleCX = CASTLE_X + 115, castleCY = wh / 2;
+  if (Math.hypot(player.x - castleCX, player.y - castleCY) < CASTLE_REACH) triggerWin();
+}
+
+// ── Join herd ─────────────────────────────────
+function joinHerd(u) {
+  u.found = true;
+  u.sparkle.visible = false;
+  u.sprite.alpha = 1;
+  herdCount++;
+  herdFollowers.push({ sprite: u.sprite, x: u.x, y: u.y });
+  updateHUD();
+  spawnBurst(u.x, u.y);
+  const remaining = hiddenUnicorns.filter(x => !x.found).length;
+  if (remaining === 0) {
+    setMsg("🏰 All unicorns found! Head to the King's Castle!");
+  } else {
+    setMsg(`✨ A unicorn joined your herd! ${remaining} more to find!`);
+    setTimeout(() => { if (!gameWon) setMsg(`🌿 Keep exploring — ${remaining} unicorn${remaining>1?'s':''} still hidden!`); }, MSG_DURATION_MS);
+  }
+}
+
+// ── Win ───────────────────────────────────────
+function triggerWin() {
+  gameWon = true;
+  document.getElementById('win-stats').textContent = `You gathered ${herdCount} unicorns!`;
+  document.getElementById('win-screen').classList.add('show');
+}
+
+// ── Guardian chosen ───────────────────────────
+function chooseGuardian(name, emoji) {
+  document.getElementById('selection').style.display = 'none';
+  document.getElementById('chosen').classList.add('show');
+  document.getElementById('gname').textContent = `${emoji} ${name} ${emoji}`;
+  document.getElementById('gdesc').textContent = GUARDIAN_DESCS[name];
+}
+
+// ── Restart ───────────────────────────────────
+function restartGame() {
+  const ws = document.getElementById('win-screen');
+  ws.classList.remove('show');
+  document.getElementById('selection').style.display = '';
+  document.getElementById('chosen').classList.remove('show');
+  initGame();
+}
+
+// ── HUD helpers ───────────────────────────────
+function updateHUD() { document.getElementById('herd-count').textContent = `🦄 Herd: ${herdCount} / 8`; }
+function setMsg(t) { document.getElementById('msg').textContent = t; }
+
+// ── Start ─────────────────────────────────────
+initGame();
+
+window.addEventListener('resize', () => {
+  if (app) { app.renderer.resize(window.innerWidth, window.innerHeight); }
+});
+</script>
+</body>
+</html>
