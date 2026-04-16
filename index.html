@@ -1057,6 +1057,11 @@ function updateFairy() {
   }
 }
 
+/** Cancel any pending fairy respawn timer. */
+function cancelFairyRespawn() {
+  if (fairyRespawnTimer) { clearTimeout(fairyRespawnTimer); fairyRespawnTimer = null; }
+}
+
 /** Handle the fairy being caught by the player. */
 function catchFairy() {
   if (!fairy || fairy.caught) return;
@@ -1078,7 +1083,7 @@ function catchFairy() {
   showFairyBonus();
 
   // Respawn fairy after 30 s (at updated world height)
-  if (fairyRespawnTimer) clearTimeout(fairyRespawnTimer);
+  cancelFairyRespawn();
   fairyRespawnTimer = setTimeout(() => {
     if (!gameWon) spawnFairy(WORLD_H());
     fairyRespawnTimer = null;
@@ -1099,7 +1104,7 @@ function initGame() {
   if (app) { app.destroy(true); document.querySelector('canvas')?.remove(); }
 
   // Cancel any pending fairy respawn from a previous game
-  if (fairyRespawnTimer) { clearTimeout(fairyRespawnTimer); fairyRespawnTimer = null; }
+  cancelFairyRespawn();
   // Clear leftover dust particles
   fairyDustParticles.forEach(p => { if (p.g.parent) p.g.parent.removeChild(p.g); });
   fairyDustParticles = [];
