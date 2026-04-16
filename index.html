@@ -167,6 +167,51 @@
       from { text-shadow: 0 0 10px gold; }
       to   { text-shadow: 0 0 30px gold, 0 0 55px orange, 0 0 80px gold; }
     }
+
+    /* ── Fairy Bonus overlay ── */
+    #fairy-bonus {
+      display: none;
+      position: fixed;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 60;
+      text-align: center;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #fairy-bonus.show { display: block; }
+    #fairy-bonus .fb-main {
+      font-size: clamp(2em, 5vw, 3.5em);
+      font-family: Georgia, serif;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ff0080, #ff8c00, #ffd700, #80ff00, #00ffcc, #0080ff, #b000ff, #ff0080);
+      background-size: 300% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 14px rgba(255,150,255,0.95));
+      animation: fbAppear 3.6s ease forwards, fbRainbow 1.1s linear infinite;
+    }
+    #fairy-bonus .fb-sub {
+      font-size: 1.15em;
+      font-family: Georgia, serif;
+      color: #ffd700;
+      text-shadow: 0 0 14px #ffd700, 0 0 28px gold;
+      animation: fbAppear 3.6s ease forwards;
+      margin-top: 6px;
+    }
+    @keyframes fbAppear {
+      0%   { opacity: 0; transform: scale(0.2) translateY(20px); }
+      15%  { opacity: 1; transform: scale(1.35) translateY(-8px); }
+      30%  { opacity: 1; transform: scale(1.0) translateY(0); }
+      65%  { opacity: 1; transform: scale(1.0) translateY(-22px); }
+      100% { opacity: 0; transform: scale(0.8) translateY(-70px); }
+    }
+    @keyframes fbRainbow {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
   </style>
 </head>
 <body>
@@ -203,6 +248,11 @@
     </div>
     <button class="again-btn" onclick="restartGame()">🌿 Play Again</button>
   </div>
+</div>
+
+<div id="fairy-bonus">
+  <div class="fb-main">✨ Magical Fairy Bonus! ✨</div>
+  <div class="fb-sub">🌸 Your unicorn grew! 🌸</div>
 </div>
 
 <script src="lib/pixi.min.js"></script>
@@ -568,6 +618,12 @@ let player, herdFollowers, hiddenUnicorns, prevPositions;
 let herdCount, gameWon, frameCount, lastCastleBlockMsg;
 const keys = {};
 
+// ── Fairy state ───────────────────────────────
+let fairy = null, fairyDustParticles = [], fairyRespawnTimer = null;
+const FAIRY_CATCH_R = 55;
+const FAIRY_SPEED   = 1.5;
+const FAIRY_DUST_COLORS = [0xFF80FF, 0xFFD700, 0x80FFFF, 0xFFFFFF, 0xFF99CC];
+
 window.addEventListener('keydown', e => {
   keys[e.code] = true;
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
@@ -828,9 +884,226 @@ function spawnHiddenUnicorns(wh) {
   return list;
 }
 
+// ── Fairy helpers ──────────────────────────────
+
+/** Build a fairy sprite: wings, glowing body, tiny humanoid head. */
+function buildFairy() {
+  const root = new PIXI.Container();
+
+  // Soft outer glow
+  const glow = new PIXI.Graphics();
+  glow.beginFill(0xFF80FF, 0.18); glow.drawCircle(0, 0, 28); glow.endFill();
+  glow.beginFill(0xFFFFFF, 0.10); glow.drawCircle(0, 0, 16); glow.endFill();
+  root.addChild(glow);
+
+  // Wings (behind body)
+  const wings = new PIXI.Graphics();
+  // Upper wings
+  wings.beginFill(0xCCEEFF, 0.72); wings.drawEllipse(-17, -7, 14, 9); wings.endFill();
+  wings.beginFill(0xCCEEFF, 0.72); wings.drawEllipse( 17, -7, 14, 9); wings.endFill();
+  // Wing shimmer outline
+  wings.lineStyle(0.8, 0xFFFFFF, 0.55);
+  wings.drawEllipse(-17, -7, 14, 9); wings.drawEllipse(17, -7, 14, 9);
+  wings.lineStyle(0);
+  // Lower wings
+  wings.beginFill(0xEECCFF, 0.55); wings.drawEllipse(-13, 3, 9, 5); wings.endFill();
+  wings.beginFill(0xEECCFF, 0.55); wings.drawEllipse( 13, 3, 9, 5); wings.endFill();
+  root.addChild(wings);
+
+  // Body / dress
+  const body = new PIXI.Graphics();
+  body.beginFill(0xFF99DD, 0.95); body.drawEllipse(0, 3, 5, 9); body.endFill();
+  // Dress sparkle detail
+  body.beginFill(0xFFFFFF, 0.35); body.drawEllipse(-1, 5, 2.5, 4); body.endFill();
+
+  // Head
+  body.beginFill(0xFFE0CC, 1); body.drawCircle(0, -10, 5.5); body.endFill();
+
+  // Hair
+  body.beginFill(0xFFD700, 0.95);
+  body.drawEllipse(-1, -14, 4.5, 3);
+  body.drawEllipse( 3.5, -13, 3, 2);
+  body.drawEllipse(-3.5, -13, 3, 2);
+  body.endFill();
+
+  // Eyes
+  body.beginFill(0x550055, 1);
+  body.drawCircle(-1.8, -10.2, 1.2); body.drawCircle(1.8, -10.2, 1.2);
+  body.endFill();
+  // Eye glints
+  body.beginFill(0xFFFFFF, 1);
+  body.drawCircle(-1.2, -10.8, 0.5); body.drawCircle(2.4, -10.8, 0.5);
+  body.endFill();
+
+  // Small wand with star tip
+  body.lineStyle(1, 0xFFD700, 0.9); body.moveTo(5, -4); body.lineTo(12, -14); body.lineStyle(0);
+  body.beginFill(0xFFFF80, 0.95); drawStarShape(body, 12, -15, 4, 3.5, 1.5); body.endFill();
+
+  root.addChild(body);
+
+  root._wings = wings;
+  root._glow  = glow;
+  return root;
+}
+
+/** Spawn the fairy at a random forest position. */
+function spawnFairy(wh) {
+  // Remove old fairy sprite if any
+  if (fairy && fairy.sprite && fairy.sprite.parent) {
+    fairy.sprite.parent.removeChild(fairy.sprite);
+  }
+  const sprite = buildFairy();
+  const startX = 500 + Math.random() * 2800;
+  const startY = 120 + Math.random() * (wh - 240);
+  sprite.x = startX;
+  sprite.y = startY;
+  entityLayer.addChild(sprite);
+  fairy = {
+    sprite,
+    x: startX, y: startY,
+    tx: 500 + Math.random() * 2800, ty: 120 + Math.random() * (wh - 240),
+    bobAng: 0, wingAng: 0, time: 0,
+    wh,
+    caught: false,
+  };
+}
+
+/** Spawn one fairy-dust particle at (x, y). */
+function spawnFairyDust(x, y) {
+  const g = new PIXI.Graphics();
+  const color = FAIRY_DUST_COLORS[Math.floor(Math.random() * FAIRY_DUST_COLORS.length)];
+  const size  = 1.5 + Math.random() * 2.5;
+  g.beginFill(color, 0.9);
+  if (Math.random() < 0.4) {
+    drawStarShape(g, 0, 0, 4, size * 1.8, size * 0.65);
+  } else {
+    g.drawCircle(0, 0, size);
+  }
+  g.endFill();
+  g.x = x + (Math.random() - 0.5) * 12;
+  g.y = y + (Math.random() - 0.5) * 12;
+  entityLayer.addChild(g);
+  const maxLife = 60 + Math.random() * 40;
+  fairyDustParticles.push({
+    g, maxLife, life: maxLife,
+    vx: (Math.random() - 0.5) * 0.9,
+    vy: -0.35 - Math.random() * 0.55,
+  });
+}
+
+/** Tick all active fairy-dust particles. */
+function updateFairyDust() {
+  for (let i = fairyDustParticles.length - 1; i >= 0; i--) {
+    const p = fairyDustParticles[i];
+    p.life--;
+    p.g.x += p.vx;
+    p.g.y += p.vy;
+    p.vy  += 0.018; // gentle gravity drift
+    const frac = p.life / p.maxLife;
+    p.g.alpha = frac;
+    p.g.scale.set(frac * 0.7 + 0.3);
+    if (p.life <= 0) {
+      if (p.g.parent) p.g.parent.removeChild(p.g);
+      fairyDustParticles.splice(i, 1);
+    }
+  }
+}
+
+/** Main fairy update — call once per game frame. */
+function updateFairy() {
+  if (!fairy || fairy.caught) return;
+
+  fairy.time++;
+  fairy.wingAng += 0.32;
+  fairy.bobAng  += 0.055;
+
+  // Flapping: shimmer alpha on wings
+  fairy.sprite._wings.alpha = 0.55 + 0.45 * Math.abs(Math.sin(fairy.wingAng));
+  // Glow pulse
+  fairy.sprite._glow.alpha  = 0.15 + 0.12 * Math.sin(fairy.bobAng * 2.3);
+
+  // Move toward target with sinusoidal bobbing perpendicular to travel
+  const dx   = fairy.tx - fairy.x;
+  const dy   = fairy.ty - fairy.y;
+  const dist = Math.hypot(dx, dy);
+
+  if (dist < 50) {
+    // Pick a new random waypoint in the forest region
+    fairy.tx = 500 + Math.random() * 2800;
+    fairy.ty = 120 + Math.random() * (fairy.wh - 240);
+  } else {
+    const norm = 1 / dist;
+    const nx = dx * norm, ny = dy * norm;
+    const bob = Math.sin(fairy.bobAng * 3.5) * 2.2; // perpendicular wobble
+    fairy.x += nx * FAIRY_SPEED + (-ny) * bob;
+    fairy.y += ny * FAIRY_SPEED +   nx  * bob;
+  }
+
+  // Horizontal flip based on direction
+  const facingRight = fairy.tx > fairy.x + 4;
+  fairy.sprite.scale.x = facingRight ? 1 : -1;
+  fairy.sprite.x = fairy.x;
+  fairy.sprite.y = fairy.y;
+
+  // Leave fairy-dust trail every 3 frames
+  if (fairy.time % 3 === 0) spawnFairyDust(fairy.x, fairy.y);
+
+  // Tick dust particles
+  updateFairyDust();
+
+  // Check if player caught the fairy
+  if (Math.hypot(player.x - fairy.x, player.y - fairy.y) < FAIRY_CATCH_R) {
+    catchFairy();
+  }
+}
+
+/** Handle the fairy being caught by the player. */
+function catchFairy() {
+  if (!fairy || fairy.caught) return;
+  fairy.caught = true;
+  if (fairy.sprite.parent) fairy.sprite.parent.removeChild(fairy.sprite);
+
+  // Grow the player unicorn slightly
+  const grow = 1.18;
+  const sx = player.sprite.scale.x;
+  player.sprite.scale.set(Math.sign(sx) * Math.abs(sx) * grow, player.sprite.scale.y * grow);
+  player.glow.scale.set(player.glow.scale.x * grow, player.glow.scale.y * grow);
+
+  // Visual burst at catch point
+  spawnBurst(fairy.x, fairy.y);
+  spawnBurst(fairy.x - 20, fairy.y - 20);
+  spawnBurst(fairy.x + 20, fairy.y + 15);
+
+  // Show the bonus overlay
+  showFairyBonus();
+
+  // Respawn fairy after 30 s (at updated world height)
+  if (fairyRespawnTimer) clearTimeout(fairyRespawnTimer);
+  fairyRespawnTimer = setTimeout(() => {
+    if (!gameWon) spawnFairy(WORLD_H());
+    fairyRespawnTimer = null;
+  }, 30000);
+}
+
+/** Animate the "Magical Fairy Bonus" DOM overlay. */
+function showFairyBonus() {
+  const el = document.getElementById('fairy-bonus');
+  el.classList.remove('show');
+  void el.offsetWidth; // force reflow to restart animation
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3700);
+}
+
 // ── Init ──────────────────────────────────────
 function initGame() {
   if (app) { app.destroy(true); document.querySelector('canvas')?.remove(); }
+
+  // Cancel any pending fairy respawn from a previous game
+  if (fairyRespawnTimer) { clearTimeout(fairyRespawnTimer); fairyRespawnTimer = null; }
+  // Clear leftover dust particles
+  fairyDustParticles.forEach(p => { if (p.g.parent) p.g.parent.removeChild(p.g); });
+  fairyDustParticles = [];
+  fairy = null;
 
   const wh = WORLD_H();
   herdCount  = 1;
@@ -868,6 +1141,7 @@ function initGame() {
 
   hiddenUnicorns = spawnHiddenUnicorns(wh);
   player = spawnPlayer(wh);
+  spawnFairy(wh);
 
   updateHUD();
   setMsg('✨ Find the unicorns hidden in the forest!');
@@ -926,6 +1200,9 @@ function gameLoop(delta) {
     if (dist < DETECT_R) joinHerd(u);
   });
 
+  // ── Fairy
+  updateFairy();
+
   // ── Camera — smooth follow
   const sw = app.screen.width, sh = app.screen.height;
   const tx = Math.min(0, Math.max(-(WORLD_W - sw), sw / 2 - player.x));
@@ -961,7 +1238,15 @@ function joinHerd(u) {
     setMsg("🏰 All unicorns found! Head to the King's Castle!");
   } else {
     setMsg(`✨ A unicorn joined your herd! ${remaining} more to find!`);
-    setTimeout(() => { if (!gameWon) setMsg(`🌿 Keep exploring — ${remaining} unicorn${remaining>1?'s':''} still hidden!`); }, MSG_DURATION_MS);
+    setTimeout(() => {
+      if (!gameWon) {
+        // Re-check live count so a stale closure never wrongly says unicorns are missing
+        const stillRemaining = hiddenUnicorns.filter(x => !x.found).length;
+        if (stillRemaining > 0) {
+          setMsg(`🌿 Keep exploring — ${stillRemaining} unicorn${stillRemaining > 1 ? 's' : ''} still hidden!`);
+        }
+      }
+    }, MSG_DURATION_MS);
   }
 }
 
