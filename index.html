@@ -168,6 +168,147 @@
       to   { text-shadow: 0 0 30px gold, 0 0 55px orange, 0 0 80px gold; }
     }
 
+    /* ── Enter Castle button ── */
+    .castle-btn {
+      padding: 13px 32px;
+      font-size: 1.1em;
+      font-family: Georgia, serif;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4a0060, #8b00bb);
+      color: #fff;
+      border: 2px solid gold;
+      border-radius: 30px;
+      box-shadow: 0 0 18px rgba(255,215,0,0.55), 0 0 40px rgba(140,0,200,0.35);
+      transition: all 0.18s;
+      margin-bottom: 10px;
+    }
+    .castle-btn:hover {
+      transform: scale(1.08);
+      background: linear-gradient(135deg, #8b00bb, #ffd700);
+      color: #1a003a;
+      box-shadow: 0 0 28px rgba(255,215,0,0.9);
+    }
+
+    /* ── Castle Maze Level ── */
+    #castle-maze-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: #050008;
+      flex-direction: column;
+      align-items: stretch;
+      overflow: hidden;
+    }
+    #castle-maze-screen.show { display: flex; }
+
+    #maze-header {
+      text-align: center;
+      padding: 10px 0 6px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, rgba(10,0,20,0.95) 0%, rgba(5,0,8,0.85) 100%);
+      border-bottom: 1px solid rgba(255,215,0,0.2);
+    }
+    .maze-title {
+      font-size: clamp(1.1em, 2.8vw, 1.7em);
+      color: gold;
+      text-shadow: 0 0 18px #ffd700, 0 0 36px gold;
+      font-family: Georgia, serif;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .maze-subtitle {
+      font-size: clamp(0.7em, 1.4vw, 0.82em);
+      color: rgba(200,180,255,0.75);
+      font-family: Arial, sans-serif;
+      margin-top: 3px;
+    }
+    #maze-canvas { display: block; flex: 1 1 0; }
+
+    /* ── Encounter overlay ── */
+    #maze-encounter {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 310;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #maze-encounter.show { display: flex; }
+    .enc-icon  { font-size: clamp(3.5em,8vw,5.5em); margin-bottom: 14px; animation: shake 0.6s ease; }
+    .enc-title {
+      font-size: clamp(1.6em,4vw,2.6em);
+      color: #ff5544;
+      text-shadow: 0 0 22px #ff2200;
+      font-family: Georgia, serif;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .enc-desc {
+      font-size: clamp(0.88em,1.8vw,1em);
+      color: #ccaaaa;
+      max-width: 420px;
+      text-align: center;
+      line-height: 1.65;
+      margin-bottom: 28px;
+      font-family: Georgia, serif;
+    }
+    #enc-btn {
+      padding: 13px 36px;
+      font-size: 1.05em;
+      font-family: Georgia, serif;
+      cursor: pointer;
+      background: linear-gradient(135deg, #6a0000, #cc1100);
+      color: #fff;
+      border: 2px solid rgba(var(--enc-rgb,255,80,0),0.9);
+      border-radius: 30px;
+      box-shadow: 0 0 18px rgba(var(--enc-rgb,255,80,0),0.5);
+      transition: all 0.18s;
+      --enc-rgb: 255,80,0;
+    }
+    #enc-btn:hover { transform: scale(1.08); box-shadow: 0 0 30px rgba(var(--enc-rgb,255,80,0),0.8); }
+
+    /* ── Maze victory ── */
+    #maze-victory {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(60,0,110,0.96) 0%, rgba(0,0,0,0.98) 100%);
+      z-index: 310;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #maze-victory.show { display: flex; }
+    .maze-victory-crown { font-size: clamp(3em,7vw,5em); margin-bottom: 10px; }
+    .maze-victory-title {
+      font-size: clamp(1.9em,4.5vw,3.2em);
+      color: gold;
+      text-shadow: 0 0 28px gold;
+      font-family: Georgia, serif;
+      margin-bottom: 14px;
+      text-align: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .maze-victory-sub {
+      font-size: clamp(0.9em,1.8vw,1.1em);
+      color: #d4aaff;
+      text-align: center;
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 30px;
+      font-family: Georgia, serif;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0) rotate(0deg); }
+      18%,54%  { transform: translateX(-8px) rotate(-3deg); }
+      36%,72%  { transform: translateX( 8px) rotate( 3deg); }
+    }
+
     /* ── Fairy Bonus overlay ── */
     #fairy-bonus {
       display: none;
@@ -246,6 +387,7 @@
         <div class="guardian-desc" id="gdesc"></div>
       </div>
     </div>
+    <button class="castle-btn" onclick="startCastleMaze(chosenGuardianName)">🏰 Enter the Castle →</button>
     <button class="again-btn" onclick="restartGame()">🌿 Play Again</button>
   </div>
 </div>
@@ -253,6 +395,31 @@
 <div id="fairy-bonus">
   <div class="fb-main">✨ Magical Fairy Bonus! ✨</div>
   <div class="fb-sub">🌸 Your unicorn grew! 🌸</div>
+</div>
+
+<!-- ── Castle Maze Level ── -->
+<div id="castle-maze-screen">
+  <div id="maze-header">
+    <div class="maze-title">🏰 The King's Castle 🏰</div>
+    <div class="maze-subtitle">⬆⬇⬅➡ or W A S D to navigate &nbsp;|&nbsp; Seek the King through the enchanted halls</div>
+  </div>
+  <canvas id="maze-canvas"></canvas>
+</div>
+
+<!-- ── Encounter overlay ── -->
+<div id="maze-encounter">
+  <div class="enc-icon"  id="enc-icon">👹</div>
+  <div class="enc-title" id="enc-title">An Ogre Blocks Your Path!</div>
+  <div class="enc-desc"  id="enc-desc"></div>
+  <button id="enc-btn" onclick="continueMaze()">⚔️ Defeat the Ogre</button>
+</div>
+
+<!-- ── Maze victory ── -->
+<div id="maze-victory">
+  <div class="maze-victory-crown">👑</div>
+  <div class="maze-victory-title">You Found the King!</div>
+  <div class="maze-victory-sub" id="maze-victory-sub"></div>
+  <button class="again-btn" onclick="restartGame()">🌿 Play Again</button>
 </div>
 
 <script src="lib/pixi.min.js"></script>
@@ -617,6 +784,9 @@ let app, world, bgLayer, midLayer, entityLayer, fgLayer;
 let player, herdFollowers, hiddenUnicorns, prevPositions;
 let herdCount, gameWon, frameCount, lastCastleBlockMsg;
 const keys = {};
+
+// ── Guardian selection state ──────────────────
+let chosenGuardianName = 'Starspell';
 
 // ── Fairy state ───────────────────────────────
 let fairy = null, fairyDustParticles = [], fairyRespawnTimer = null;
@@ -1264,6 +1434,7 @@ function triggerWin() {
 
 // ── Guardian chosen ───────────────────────────
 function chooseGuardian(name, emoji) {
+  chosenGuardianName = name;
   document.getElementById('selection').style.display = 'none';
   document.getElementById('chosen').classList.add('show');
   document.getElementById('gname').textContent = `${emoji} ${name} ${emoji}`;
@@ -1273,6 +1444,7 @@ function chooseGuardian(name, emoji) {
 
 // ── Restart ───────────────────────────────────
 function restartGame() {
+  stopCastleMaze();
   const ws = document.getElementById('win-screen');
   ws.classList.remove('show');
   document.getElementById('selection').style.display = '';
@@ -1289,7 +1461,970 @@ initGame();
 
 window.addEventListener('resize', () => {
   if (app) { app.renderer.resize(window.innerWidth, window.innerHeight); }
+  if (document.getElementById('castle-maze-screen').classList.contains('show')) {
+    resizeMazeCanvas();
+  }
 });
+
+// ─────────────────────────────────────────────
+//  CASTLE MAZE LEVEL
+// ─────────────────────────────────────────────
+
+const MAZE_W = 31, MAZE_H = 19;
+
+// ── Maze state ────────────────────────────────
+let mazeActive           = false;
+let mazeAnimId           = null;
+let mazeGrid             = null;
+let mazePlayerRow        = 1, mazePlayerCol = 1;
+let mazeDefeated         = {};        // { O, D, Z } booleans
+let mazeTorches          = [];
+let mazeParticles        = [];
+let mazeFrameCount       = 0;
+let mazeLastMoveTime     = 0;
+let mazePendingEncounter = null;      // 'O' | 'D' | 'Z' | null
+const MAZE_MOVE_DELAY    = 140;       // ms between key-repeat steps
+
+// ── Maze grid builder ─────────────────────────
+function buildMazeGrid() {
+  const g = Array.from({ length: MAZE_H }, () => Array(MAZE_W).fill('#'));
+  const ch = (row, c1, c2) => { for (let c = c1; c <= c2; c++) g[row][c] = '.'; };
+  const cv = (col, r1, r2) => { for (let r = r1; r <= r2; r++) g[r][col] = '.'; };
+
+  // Spiral path — outer loop
+  ch(1,  1, 29);  cv(29, 1, 17);  ch(17, 3, 29);  cv(3,  3, 17);
+  // Second loop
+  ch(3,  3, 27);  cv(27, 3, 15);  ch(15, 5, 27);  cv(5,  5, 15);
+  // Third loop
+  ch(5,  5, 25);  cv(25, 5, 13);  ch(13, 7, 25);  cv(7,  7, 13);
+  // Fourth / innermost loop
+  ch(7,  7, 23);  cv(23, 7, 11);  ch(11, 9, 23);  cv(9,  9, 11);
+  // Inner corridor → King's chamber
+  ch(9,  9, 21);
+
+  // Special cells (in spiral traversal order: S → O → D → Z → K)
+  g[1][1]   = 'S';   // start
+  g[1][13]  = 'O';   // ogre   — row 1 corridor
+  g[17][15] = 'D';   // dragon — row 17 return corridor
+  g[15][13] = 'Z';   // zombie — row 15 corridor
+  g[9][19]  = 'K';   // king   — innermost chamber
+  return g;
+}
+
+// ── Torch placement ───────────────────────────
+function buildMazeTorches() {
+  const rng = mkRng(555);
+  const torches = [];
+  for (let r = 0; r < MAZE_H; r++) {
+    for (let c = 0; c < MAZE_W; c++) {
+      if (mazeGrid[r][c] !== '#') continue;
+      const adj = [[r-1,c],[r+1,c],[r,c-1],[r,c+1]];
+      const hasFloor = adj.some(([ar,ac]) =>
+        ar >= 0 && ar < MAZE_H && ac >= 0 && ac < MAZE_W && mazeGrid[ar][ac] !== '#');
+      if (hasFloor && rng() < 0.13) {
+        torches.push({ row: r, col: c, phase: rng() * Math.PI * 2,
+                       intensity: 0.65 + rng() * 0.35 });
+      }
+    }
+  }
+  return torches;
+}
+
+// ── Start / Stop ──────────────────────────────
+function startCastleMaze(guardianName) {
+  chosenGuardianName   = guardianName || 'Starspell';
+  mazeGrid             = buildMazeGrid();
+  mazePlayerRow        = 1;
+  mazePlayerCol        = 1;
+  mazeDefeated         = { O: false, D: false, Z: false };
+  mazeActive           = true;
+  mazePendingEncounter = null;
+  mazeFrameCount       = 0;
+  mazeParticles        = [];
+  mazeTorches          = buildMazeTorches();
+
+  document.getElementById('win-screen').classList.remove('show');
+  document.getElementById('castle-maze-screen').classList.add('show');
+  resizeMazeCanvas();
+
+  if (mazeAnimId) { cancelAnimationFrame(mazeAnimId); mazeAnimId = null; }
+  mazeTick();
+}
+
+function stopCastleMaze() {
+  mazeActive = false;
+  if (mazeAnimId) { cancelAnimationFrame(mazeAnimId); mazeAnimId = null; }
+  document.getElementById('castle-maze-screen').classList.remove('show');
+  document.getElementById('maze-encounter').classList.remove('show');
+  document.getElementById('maze-victory').classList.remove('show');
+}
+
+// ── Canvas sizing ─────────────────────────────
+function resizeMazeCanvas() {
+  const header = document.getElementById('maze-header');
+  const hh     = header ? header.offsetHeight : 64;
+  const canvas = document.getElementById('maze-canvas');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight - hh;
+}
+
+function getMazeLayout() {
+  const canvas = document.getElementById('maze-canvas');
+  const cs = Math.floor(Math.min(canvas.width / MAZE_W, canvas.height / MAZE_H));
+  return {
+    cs,
+    ox: Math.floor((canvas.width  - cs * MAZE_W) / 2),
+    oy: Math.floor((canvas.height - cs * MAZE_H) / 2),
+  };
+}
+
+// ── Game loop ─────────────────────────────────
+function mazeTick() {
+  if (!mazeActive) return;
+  mazeFrameCount++;
+
+  if (!mazePendingEncounter) {
+    const now = Date.now();
+    if (now - mazeLastMoveTime >= MAZE_MOVE_DELAY) {
+      let dr = 0, dc = 0;
+      if      (keys['ArrowUp']    || keys['KeyW']) dr = -1;
+      else if (keys['ArrowDown']  || keys['KeyS']) dr =  1;
+      else if (keys['ArrowLeft']  || keys['KeyA']) dc = -1;
+      else if (keys['ArrowRight'] || keys['KeyD']) dc =  1;
+      if (dr || dc) { mazeTryMove(dr, dc); mazeLastMoveTime = now; }
+    }
+  }
+
+  if (mazeFrameCount % 5 === 0) spawnMazeParticle();
+  updateMazeParticles();
+  renderMaze();
+  mazeAnimId = requestAnimationFrame(mazeTick);
+}
+
+// ── Movement + encounter logic ─────────────────
+function mazeTryMove(dr, dc) {
+  const nr = mazePlayerRow + dr, nc = mazePlayerCol + dc;
+  if (nr < 0 || nr >= MAZE_H || nc < 0 || nc >= MAZE_W) return;
+  const cell = mazeGrid[nr][nc];
+  if (cell === '#') return;
+
+  // Undefeated obstacle blocks movement
+  if ((cell === 'O' && !mazeDefeated.O) ||
+      (cell === 'D' && !mazeDefeated.D) ||
+      (cell === 'Z' && !mazeDefeated.Z)) {
+    showMazeEncounter(cell);
+    return;
+  }
+
+  // King requires all three defeated
+  if (cell === 'K') {
+    if (mazeDefeated.O && mazeDefeated.D && mazeDefeated.Z) {
+      mazePlayerRow = nr; mazePlayerCol = nc;
+      triggerMazeVictory();
+    }
+    return;
+  }
+
+  mazePlayerRow = nr;
+  mazePlayerCol = nc;
+}
+
+// ── Encounter data ────────────────────────────
+const MAZE_ENCOUNTER_DATA = {
+  O: {
+    icon:      '👹',
+    title:     'An Ogre Blocks Your Path!',
+    desc:      'A hulking ogre with a spiked club bars the torchlit corridor. Its bellowing roar shakes dust from the ancient stones, and its red eyes burn with fury.',
+    btn:       '⚔️  Defeat the Ogre',
+    accentRgb: '255,100,0',
+  },
+  D: {
+    icon:      '🐉',
+    title:     'A Dragon Guards the Passage!',
+    desc:      'A magnificent crimson dragon coils across the vaulted hall, scales shimmering like molten rubies. Smoke curls from its nostrils as golden eyes fix upon you.',
+    btn:       '🔥  Face the Dragon',
+    accentRgb: '220,50,0',
+  },
+  Z: {
+    icon:      '🧟',
+    title:     'A Zombie Rises from the Shadows!',
+    desc:      'From the dark alcoves of the crypt a zombie lurches forward, hollow eyes blazing with eerie green light, arms outstretched across the ancient stone passage.',
+    btn:       '✨  Banish the Zombie',
+    accentRgb: '30,180,50',
+  },
+};
+
+function showMazeEncounter(type) {
+  mazePendingEncounter = type;
+  const d = MAZE_ENCOUNTER_DATA[type];
+  document.getElementById('enc-icon').textContent  = d.icon;
+  document.getElementById('enc-title').textContent = d.title;
+  document.getElementById('enc-desc').textContent  = d.desc;
+  const btn = document.getElementById('enc-btn');
+  btn.textContent = d.btn;
+  btn.style.setProperty('--enc-rgb', d.accentRgb);
+  document.getElementById('maze-encounter').classList.add('show');
+}
+
+function continueMaze() {
+  if (!mazePendingEncounter) return;
+  mazeDefeated[mazePendingEncounter] = true;
+  mazePendingEncounter = null;
+  document.getElementById('maze-encounter').classList.remove('show');
+}
+
+function triggerMazeVictory() {
+  mazeActive = false;
+  if (mazeAnimId) { cancelAnimationFrame(mazeAnimId); mazeAnimId = null; }
+  renderMaze();   // final frame with player on King's cell
+  document.getElementById('maze-victory-sub').textContent =
+    `${chosenGuardianName} conquered the Ogre, the Dragon and the Zombie, and presented the unicorn herd to the King. The realm is saved! 🦄`;
+  document.getElementById('maze-victory').classList.add('show');
+}
+
+// ─────────────────────────────────────────────
+//  CASTLE MAZE RENDERING
+// ─────────────────────────────────────────────
+
+function renderMaze() {
+  const canvas = document.getElementById('maze-canvas');
+  const ctx    = canvas.getContext('2d');
+  const { cs, ox, oy } = getMazeLayout();
+
+  // Background
+  ctx.fillStyle = '#050008';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Ambient vignette
+  const vgrd = ctx.createRadialGradient(
+    canvas.width/2, canvas.height/2, cs*2,
+    canvas.width/2, canvas.height/2, canvas.width * 0.75);
+  vgrd.addColorStop(0, 'transparent');
+  vgrd.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = vgrd;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw all cells
+  for (let r = 0; r < MAZE_H; r++) {
+    for (let c = 0; c < MAZE_W; c++) {
+      drawMazeCell(ctx, r, c, ox + c*cs, oy + r*cs, cs);
+    }
+  }
+
+  // Torch glows (behind sprites)
+  mazeTorches.forEach(t => {
+    drawMazeTorchGlow(ctx, ox + t.col*cs + cs*0.5, oy + t.row*cs + cs*0.5, cs, t);
+  });
+
+  // Floating particles
+  ctx.save();
+  mazeParticles.forEach(p => {
+    ctx.globalAlpha = p.alpha;
+    ctx.fillStyle   = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // Special entities (monsters, king)
+  for (let r = 0; r < MAZE_H; r++) {
+    for (let c = 0; c < MAZE_W; c++) {
+      const cell = mazeGrid[r][c];
+      const cx   = ox + c*cs + cs*0.5;
+      const cy   = oy + r*cs + cs*0.5;
+      if (cell === 'O' && !mazeDefeated.O) drawMazeOgre  (ctx, cx, cy, cs);
+      if (cell === 'D' && !mazeDefeated.D) drawMazeDragon (ctx, cx, cy, cs);
+      if (cell === 'Z' && !mazeDefeated.Z) drawMazeZombie (ctx, cx, cy, cs);
+      if (cell === 'K')                    drawMazeKing   (ctx, cx, cy, cs);
+    }
+  }
+
+  // Player unicorn
+  drawMazePlayer(ctx,
+    ox + mazePlayerCol*cs + cs*0.5,
+    oy + mazePlayerRow*cs + cs*0.5,
+    cs);
+
+  // Decorative battlement border
+  drawMazeBorder(ctx, ox, oy, cs*MAZE_W, cs*MAZE_H, cs);
+}
+
+// ── Cell drawing ──────────────────────────────
+function drawMazeCell(ctx, row, col, px, py, cs) {
+  const cell = mazeGrid[row][col];
+  if (cell === '#') {
+    // Stone wall
+    const v = ((row * 7 + col * 13) % 5) * 6;
+    ctx.fillStyle = `rgb(${42+v},${38+v},${50+v})`;
+    ctx.fillRect(px, py, cs, cs);
+
+    // Bevel edges
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.fillRect(px, py, cs, 1); ctx.fillRect(px, py, 1, cs);
+    ctx.fillStyle = 'rgba(0,0,0,0.30)';
+    ctx.fillRect(px, py+cs-1, cs, 1); ctx.fillRect(px+cs-1, py, 1, cs);
+
+    // Mortar lines (alternating brick bond)
+    if (cs >= 16) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.28)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      if (row % 2 === 0) {
+        ctx.moveTo(px, py + cs*0.5); ctx.lineTo(px+cs, py + cs*0.5);
+      } else {
+        ctx.moveTo(px + cs*0.5, py); ctx.lineTo(px + cs*0.5, py+cs);
+      }
+      ctx.stroke();
+    }
+
+    // Occasional moss
+    if ((row * 5 + col * 11) % 13 === 0) {
+      ctx.fillStyle = 'rgba(20,70,15,0.38)';
+      ctx.fillRect(px + cs*0.1, py + cs*0.58, cs*0.8, cs*0.36);
+    }
+
+    // Occasional cobweb
+    if ((row * 11 + col * 7) % 23 === 0 && cs >= 18) {
+      ctx.strokeStyle = 'rgba(200,200,200,0.15)';
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(px+1, py+1);         ctx.lineTo(px+cs*0.44, py+1);
+      ctx.moveTo(px+1, py+1);         ctx.lineTo(px+1, py+cs*0.44);
+      ctx.moveTo(px+cs*0.44, py+1);   ctx.lineTo(px+1, py+cs*0.44);
+      ctx.stroke();
+    }
+  } else {
+    // Dungeon floor
+    ctx.fillStyle = '#0d0818';
+    ctx.fillRect(px, py, cs, cs);
+
+    // Tile outline
+    if (cs >= 14) {
+      ctx.strokeStyle = 'rgba(80,40,130,0.28)';
+      ctx.lineWidth = 0.7;
+      ctx.strokeRect(px+1, py+1, cs-2, cs-2);
+    }
+
+    // Magical floor glow
+    const fgrd = ctx.createRadialGradient(px+cs*0.5, py+cs*0.5, 0, px+cs*0.5, py+cs*0.5, cs*0.72);
+    fgrd.addColorStop(0, 'rgba(70,18,110,0.13)');
+    fgrd.addColorStop(1, 'transparent');
+    ctx.fillStyle = fgrd;
+    ctx.fillRect(px, py, cs, cs);
+
+    // Occasional rune circle
+    if ((row * 5 + col * 11) % 19 === 0 && cs >= 20) {
+      const rx = px + cs*0.5, ry = py + cs*0.5, rr = cs * 0.3;
+      ctx.strokeStyle = 'rgba(100,50,180,0.22)';
+      ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.arc(rx, ry, rr, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(rx, ry-rr); ctx.lineTo(rx, ry+rr);
+      ctx.moveTo(rx-rr, ry); ctx.lineTo(rx+rr, ry);
+      ctx.stroke();
+    }
+
+    // Golden shimmer intensifies near King
+    const dist = Math.hypot(row - 9, col - 19);
+    if (dist < 5) {
+      ctx.fillStyle = `rgba(255,215,0,${(1 - dist/5) * 0.09})`;
+      ctx.fillRect(px, py, cs, cs);
+    }
+  }
+}
+
+// ── Torch glow ────────────────────────────────
+function drawMazeTorchGlow(ctx, cx, cy, cs, torch) {
+  const t   = mazeFrameCount * 0.09 + torch.phase;
+  const flk = 0.72 + 0.28 * Math.sin(t * 2.1) * Math.cos(t * 1.6);
+  const alp = flk * torch.intensity;
+  const gr  = cs * (1.9 + 0.5 * Math.sin(t * 0.7));
+
+  const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, gr);
+  grd.addColorStop(0,    `rgba(255,165,20,${alp * 0.55})`);
+  grd.addColorStop(0.45, `rgba(200,60,0,${alp * 0.18})`);
+  grd.addColorStop(1,    'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(cx-gr, cy-gr, gr*2, gr*2);
+
+  if (cs >= 14) {
+    ctx.fillStyle = `rgba(255,200,60,${0.75 + 0.25*flk})`;
+    ctx.beginPath(); ctx.arc(cx, cy, cs * 0.11, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = `rgba(255,255,180,${0.55 + 0.45*flk})`;
+    ctx.beginPath(); ctx.arc(cx, cy, cs * 0.05, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+// ── Decorative battlement border ──────────────
+function drawMazeBorder(ctx, ox, oy, mw, mh, cs) {
+  const bh = Math.max(6, Math.floor(cs * 0.38));
+  ctx.fillStyle = '#3a3048';
+  ctx.fillRect(ox - bh, oy - bh,    mw + bh*2, bh);
+  ctx.fillRect(ox - bh, oy + mh,    mw + bh*2, bh);
+  ctx.fillRect(ox - bh, oy,         bh,         mh);
+  ctx.fillRect(ox + mw, oy,         bh,         mh);
+
+  // Battlements (merlons) along top and bottom
+  const mw2  = Math.max(4, Math.floor(bh * 0.88));
+  const gap2 = Math.floor(mw2 * 0.82);
+  ctx.fillStyle = '#251830';
+  for (let x = ox; x < ox + mw; x += mw2 + gap2) {
+    ctx.fillRect(x, oy - bh - Math.floor(bh*0.58), mw2, Math.floor(bh*0.58));
+    ctx.fillRect(x, oy + mh + bh,                  mw2, Math.floor(bh*0.58));
+  }
+
+  // Gold trim
+  ctx.strokeStyle = 'rgba(255,215,0,0.28)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(ox - bh + 0.75, oy - bh + 0.75, mw + bh*2 - 1.5, mh + bh*2 - 1.5);
+}
+
+// ── Player (guardian unicorn) ─────────────────
+function drawMazePlayer(ctx, cx, cy, cs) {
+  const cfg = GUARDIAN_PORTRAIT_CONFIGS[chosenGuardianName] || GUARDIAN_PORTRAIT_CONFIGS.Starspell;
+  const s   = cs * 0.36;
+  const bob = Math.sin(mazeFrameCount * 0.10) * (s * 0.06);
+
+  // Aura glow
+  const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 2.2);
+  grd.addColorStop(0,   `rgba(${cfg.auraRgb},0.40)`);
+  grd.addColorStop(0.5, `rgba(${cfg.auraRgb},0.10)`);
+  grd.addColorStop(1,   'transparent');
+  ctx.fillStyle = grd;
+  ctx.beginPath(); ctx.arc(cx, cy, s * 2.2, 0, Math.PI*2); ctx.fill();
+
+  ctx.save();
+  ctx.translate(cx, cy + bob);
+  const u = v => v * s;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.32)';
+  ctx.beginPath(); ctx.ellipse(0, u(0.55), u(0.72), u(0.22), 0, 0, Math.PI*2); ctx.fill();
+
+  // Body
+  ctx.fillStyle = cfg.body;
+  ctx.beginPath(); ctx.ellipse(0, u(0.12), u(0.72), u(0.40), 0, 0, Math.PI*2); ctx.fill();
+
+  // Neck
+  ctx.beginPath(); ctx.ellipse(u(0.50), u(-0.14), u(0.24), u(0.32), 0, 0, Math.PI*2); ctx.fill();
+
+  // Head
+  ctx.beginPath(); ctx.ellipse(u(0.72), u(-0.35), u(0.34), u(0.28), 0, 0, Math.PI*2); ctx.fill();
+
+  // Horn glow
+  const hgrd = ctx.createRadialGradient(u(0.72), u(-0.72), 0, u(0.72), u(-0.72), u(0.50));
+  hgrd.addColorStop(0, `rgba(${cfg.auraRgb},0.70)`);
+  hgrd.addColorStop(1, 'transparent');
+  ctx.fillStyle = hgrd;
+  ctx.beginPath(); ctx.arc(u(0.72), u(-0.72), u(0.50), 0, Math.PI*2); ctx.fill();
+
+  // Horn
+  ctx.fillStyle = cfg.horn;
+  ctx.beginPath();
+  ctx.moveTo(u(0.60), u(-0.55)); ctx.lineTo(u(0.78), u(-0.95)); ctx.lineTo(u(0.96), u(-0.55));
+  ctx.closePath(); ctx.fill();
+
+  // Eye
+  ctx.fillStyle = '#1a1a2a';
+  ctx.beginPath(); ctx.arc(u(0.82), u(-0.38), u(0.09), 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(u(0.86), u(-0.42), u(0.04), 0, Math.PI*2); ctx.fill();
+
+  // Mane
+  cfg.mane.forEach((mc, i) => {
+    ctx.fillStyle = mc; ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    ctx.ellipse(u(0.42 - i*0.16), u(-0.42 + i*0.08), u(0.18), u(0.12), 0, 0, Math.PI*2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Legs
+  ctx.fillStyle = cfg.body;
+  [-0.38, -0.12, 0.14, 0.38].forEach(lx => {
+    ctx.fillRect(u(lx), u(0.50), u(0.22), u(0.56));
+  });
+
+  // Hooves
+  ctx.fillStyle = cfg.hoof;
+  [-0.38, -0.12, 0.14, 0.38].forEach(lx => {
+    ctx.fillRect(u(lx), u(0.94), u(0.22), u(0.14));
+  });
+
+  // Tail
+  cfg.mane.forEach((mc, i) => {
+    ctx.fillStyle = mc; ctx.globalAlpha = 0.88;
+    ctx.beginPath();
+    ctx.ellipse(u(-0.62 - i*0.12), u(i*0.16 - 0.10), u(0.15), u(0.13), 0, 0, Math.PI*2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
+}
+
+// ── Ogre ──────────────────────────────────────
+function drawMazeOgre(ctx, cx, cy, cs) {
+  const s   = cs * 0.40;
+  const bob = Math.sin(mazeFrameCount * 0.055) * (s * 0.07);
+  const alp = 0.25 + 0.18 * Math.abs(Math.sin(mazeFrameCount * 0.07));
+
+  const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 2.6);
+  grd.addColorStop(0, `rgba(200,80,0,${alp})`); grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(cx, cy, s * 2.6, 0, Math.PI*2); ctx.fill();
+
+  ctx.save();
+  ctx.translate(cx, cy + bob);
+  const u = v => v * s;
+
+  // Body
+  ctx.fillStyle = '#4e8228';
+  ctx.beginPath(); ctx.ellipse(0, u(0.2), u(0.65), u(0.85), 0, 0, Math.PI*2); ctx.fill();
+
+  // Belt
+  ctx.fillStyle = '#5a3010';
+  ctx.fillRect(u(-0.65), u(0.30), u(1.30), u(0.15));
+  ctx.fillStyle = '#c0a020';
+  ctx.beginPath(); ctx.arc(0, u(0.37), u(0.12), 0, Math.PI*2); ctx.fill();
+
+  // Arms
+  ctx.strokeStyle = '#4e8228'; ctx.lineWidth = u(0.26); ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(u(-0.62), u(0.10)); ctx.lineTo(u(-0.95), u(0.55)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(u( 0.62), u(0.10)); ctx.lineTo(u( 0.88), u(0.52)); ctx.stroke();
+
+  // Club
+  ctx.save(); ctx.translate(u(0.98), u(0.56)); ctx.rotate(-0.4);
+  ctx.fillStyle = '#7a4515';
+  ctx.fillRect(-u(0.08), -u(0.50), u(0.15), u(0.70));
+  ctx.fillStyle = '#9a6020';
+  ctx.beginPath(); ctx.ellipse(0, -u(0.52), u(0.22), u(0.20), 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#c0c0c0';
+  for (let i = 0; i < 4; i++) {
+    const a = (Math.PI*2/4)*i;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a)*u(0.22), -u(0.52)+Math.sin(a)*u(0.20));
+    ctx.lineTo(Math.cos(a)*u(0.32), -u(0.52)+Math.sin(a)*u(0.30));
+    ctx.lineTo(0, -u(0.52)); ctx.fill();
+  }
+  ctx.restore();
+
+  // Head
+  ctx.fillStyle = '#5e9230';
+  ctx.beginPath(); ctx.arc(0, u(-0.60), u(0.52), 0, Math.PI*2); ctx.fill();
+
+  // Brow ridge
+  ctx.fillStyle = '#4a7a22';
+  ctx.beginPath(); ctx.ellipse(0, u(-0.72), u(0.42), u(0.10), 0, 0, Math.PI*2); ctx.fill();
+
+  // Angry eyes
+  ctx.fillStyle = '#dd1100';
+  ctx.beginPath(); ctx.arc(u(-0.18), u(-0.66), u(0.12), 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(u( 0.18), u(-0.66), u(0.12), 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ff3300';
+  ctx.beginPath(); ctx.arc(u(-0.18), u(-0.66), u(0.06), 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(u( 0.18), u(-0.66), u(0.06), 0, Math.PI*2); ctx.fill();
+
+  // Angry brow lines
+  ctx.strokeStyle = '#2a5010'; ctx.lineWidth = u(0.06);
+  ctx.beginPath(); ctx.moveTo(u(-0.30), u(-0.78)); ctx.lineTo(u(-0.06), u(-0.72)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(u( 0.30), u(-0.78)); ctx.lineTo(u( 0.06), u(-0.72)); ctx.stroke();
+
+  // Nose + nostrils
+  ctx.fillStyle = '#4a7a22';
+  ctx.beginPath(); ctx.ellipse(0, u(-0.52), u(0.18), u(0.10), 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#2a4a12';
+  ctx.beginPath(); ctx.arc(u(-0.07), u(-0.52), u(0.045), 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(u( 0.07), u(-0.52), u(0.045), 0, Math.PI*2); ctx.fill();
+
+  // Tusks
+  ctx.fillStyle = '#e8e0a0';
+  ctx.beginPath();
+  ctx.moveTo(u(-0.14), u(-0.44)); ctx.lineTo(u(-0.22), u(-0.28)); ctx.lineTo(u(-0.06), u(-0.44)); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(u( 0.14), u(-0.44)); ctx.lineTo(u( 0.22), u(-0.28)); ctx.lineTo(u( 0.06), u(-0.44)); ctx.fill();
+
+  ctx.restore();
+
+  if (cs >= 22) {
+    ctx.fillStyle = '#ff7700';
+    ctx.font = `bold ${Math.max(9, Math.floor(cs * 0.24))}px Georgia`;
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#ff4400'; ctx.shadowBlur = 6;
+    ctx.fillText('OGRE', cx, cy + s * 1.72);
+    ctx.shadowBlur = 0;
+  }
+}
+
+// ── Dragon ────────────────────────────────────
+function drawMazeDragon(ctx, cx, cy, cs) {
+  const s   = cs * 0.42;
+  const bob = Math.sin(mazeFrameCount * 0.04) * (s * 0.08);
+  const flm = 0.70 + 0.30 * Math.sin(mazeFrameCount * 0.15);
+  const alp = 0.22 + 0.16 * Math.abs(Math.sin(mazeFrameCount * 0.08));
+
+  const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 2.8);
+  grd.addColorStop(0, `rgba(255,80,0,${alp})`);
+  grd.addColorStop(0.55, `rgba(180,20,0,${alp * 0.4})`);
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(cx, cy, s * 2.8, 0, Math.PI*2); ctx.fill();
+
+  ctx.save();
+  ctx.translate(cx, cy + bob);
+  const u = v => v * s;
+
+  // Wings (behind body)
+  ctx.fillStyle = 'rgba(150,18,18,0.72)';
+  ctx.beginPath();
+  ctx.moveTo(u(-0.10), u(-0.25));
+  ctx.bezierCurveTo(u(-0.60), u(-1.20), u(-1.30), u(-1.00), u(-1.10), u(-0.05));
+  ctx.bezierCurveTo(u(-0.85), u( 0.10), u(-0.50), u( 0.00), u(-0.10), u(-0.10));
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(u(0.10), u(-0.25));
+  ctx.bezierCurveTo(u(0.60), u(-1.20), u(1.30), u(-1.00), u(1.10), u(-0.05));
+  ctx.bezierCurveTo(u(0.85), u( 0.10), u(0.50), u( 0.00), u(0.10), u(-0.10));
+  ctx.closePath(); ctx.fill();
+
+  // Wing veins
+  ctx.strokeStyle = 'rgba(200,40,40,0.45)'; ctx.lineWidth = u(0.025);
+  [-1, -0.65, -0.32].forEach(fx => {
+    ctx.beginPath(); ctx.moveTo(0, u(-0.18)); ctx.lineTo(u(fx  * 1.2), u(-0.85)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, u(-0.18)); ctx.lineTo(u(-fx * 1.2), u(-0.85)); ctx.stroke();
+  });
+
+  // Body
+  ctx.fillStyle = '#c22a18';
+  ctx.beginPath(); ctx.ellipse(0, u(0.15), u(0.52), u(0.78), 0, 0, Math.PI*2); ctx.fill();
+
+  // Belly
+  ctx.fillStyle = '#e86040';
+  ctx.beginPath(); ctx.ellipse(0, u(0.25), u(0.28), u(0.50), 0, 0, Math.PI*2); ctx.fill();
+
+  // Scale pattern
+  ctx.fillStyle = 'rgba(100,10,10,0.35)';
+  for (let i = -2; i <= 2; i++) {
+    for (let j = -2; j <= 2; j++) {
+      if ((i + j) % 2 !== 0) continue;
+      ctx.beginPath(); ctx.arc(u(i*0.16), u(-0.02 + j*0.22), u(0.10), 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  // Neck
+  ctx.fillStyle = '#c22a18';
+  ctx.beginPath(); ctx.ellipse(u(-0.04), u(-0.55), u(0.30), u(0.42), 0.1, 0, Math.PI*2); ctx.fill();
+
+  // Head
+  ctx.beginPath(); ctx.ellipse(u(-0.05), u(-0.88), u(0.34), u(0.32), 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(u( 0.22), u(-0.84), u(0.26), u(0.20), 0.3, 0, Math.PI*2); ctx.fill();
+
+  // Horns
+  ctx.fillStyle = '#882010';
+  ctx.beginPath(); ctx.moveTo(u(-0.20), u(-1.08)); ctx.lineTo(u(-0.28), u(-1.28)); ctx.lineTo(u(-0.10), u(-1.06)); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(u( 0.00), u(-1.10)); ctx.lineTo(u(-0.04), u(-1.30)); ctx.lineTo(u( 0.14), u(-1.08)); ctx.fill();
+
+  // Animated flame
+  [
+    { color: `rgba(255,240,80,${flm * 0.88})`, w: 0.22, len: 0.55 + flm * 0.15 },
+    { color: `rgba(255,140,0,${flm * 0.72})`,  w: 0.16, len: 0.42 + flm * 0.12 },
+    { color: `rgba(255,40,0,${flm * 0.55})`,   w: 0.10, len: 0.32 + flm * 0.10 },
+  ].forEach(({ color, w, len }) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(u(0.50), u(-0.82), u(w), u(len), 0.5, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // Eyes
+  ctx.fillStyle = '#ffcc00';
+  ctx.beginPath(); ctx.arc(u(-0.18), u(-0.92), u(0.10), 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ff4400';
+  ctx.beginPath(); ctx.arc(u(-0.18), u(-0.92), u(0.055), 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath(); ctx.arc(u(-0.14), u(-0.96), u(0.030), 0, Math.PI*2); ctx.fill();
+
+  // Tail
+  ctx.strokeStyle = '#c22a18'; ctx.lineWidth = u(0.18); ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(u(0.02), u(0.88));
+  ctx.bezierCurveTo(u(0.60), u(1.00), u(0.90), u(0.70), u(0.80), u(0.20));
+  ctx.stroke();
+  ctx.fillStyle = '#882010';
+  ctx.beginPath(); ctx.moveTo(u(0.72), u(0.22)); ctx.lineTo(u(1.00), u(0.08)); ctx.lineTo(u(0.88), u(0.36)); ctx.fill();
+
+  ctx.restore();
+
+  if (cs >= 22) {
+    ctx.fillStyle = '#ff5500';
+    ctx.font = `bold ${Math.max(9, Math.floor(cs * 0.24))}px Georgia`;
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#ff2200'; ctx.shadowBlur = 8;
+    ctx.fillText('DRAGON', cx, cy + s * 1.92);
+    ctx.shadowBlur = 0;
+  }
+}
+
+// ── Zombie ────────────────────────────────────
+function drawMazeZombie(ctx, cx, cy, cs) {
+  const s    = cs * 0.38;
+  const sway = Math.sin(mazeFrameCount * 0.065) * (s * 0.12);
+  const alp  = 0.20 + 0.16 * Math.abs(Math.sin(mazeFrameCount * 0.065));
+
+  const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 2.5);
+  grd.addColorStop(0, `rgba(0,200,50,${alp})`); grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(cx, cy, s * 2.5, 0, Math.PI*2); ctx.fill();
+
+  ctx.save();
+  ctx.translate(cx + sway * 0.4, cy);
+  ctx.rotate(sway * 0.018);
+  const u = v => v * s;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.beginPath(); ctx.ellipse(0, u(1.08), u(0.50), u(0.14), 0, 0, Math.PI*2); ctx.fill();
+
+  // Legs
+  ctx.fillStyle = '#4a5840';
+  ctx.fillRect(u(-0.30), u(0.60), u(0.22), u(0.52));
+  ctx.fillRect(u( 0.08), u(0.60), u(0.22), u(0.52));
+  ctx.fillStyle = '#303828';
+  ctx.fillRect(u(-0.34), u(1.02), u(0.28), u(0.10));
+  ctx.fillRect(u( 0.06), u(1.02), u(0.28), u(0.10));
+
+  // Tattered robe
+  ctx.fillStyle = '#5a6850';
+  ctx.beginPath(); ctx.ellipse(0, u(0.22), u(0.42), u(0.55), 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#384030'; ctx.lineWidth = u(0.035);
+  ctx.beginPath(); ctx.moveTo(u(-0.10), u(0.05)); ctx.lineTo(u(-0.18), u(0.42)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(u( 0.14), u(0.10)); ctx.lineTo(u( 0.22), u(0.48)); ctx.stroke();
+
+  // Outstretched arms
+  ctx.strokeStyle = '#4a5840'; ctx.lineWidth = u(0.20); ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(u(-0.38), u(-0.08)); ctx.lineTo(u(-0.95) + sway*0.5, u(-0.28) - sway*0.2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(u( 0.38), u(-0.08)); ctx.lineTo(u( 0.95) + sway*0.5, u(-0.28) + sway*0.2); ctx.stroke();
+
+  // Grasping fingers
+  [
+    { x: u(-0.96) + sway*0.5, y: u(-0.28) - sway*0.2 },
+    { x: u( 0.96) + sway*0.5, y: u(-0.28) + sway*0.2 },
+  ].forEach(hp => {
+    ctx.fillStyle = '#6a7858';
+    for (let f = 0; f < 3; f++) {
+      ctx.beginPath();
+      ctx.ellipse(hp.x + u(f*0.06 - 0.06), hp.y - u(0.04), u(0.06), u(0.14), 0.2, 0, Math.PI*2);
+      ctx.fill();
+    }
+  });
+
+  // Neck
+  ctx.fillStyle = '#6a7858';
+  ctx.beginPath(); ctx.ellipse(0, u(-0.42), u(0.18), u(0.22), 0, 0, Math.PI*2); ctx.fill();
+
+  // Head (slightly tilted)
+  ctx.save(); ctx.rotate(-0.08);
+  ctx.fillStyle = '#6e7a5c';
+  ctx.beginPath(); ctx.arc(0, u(-0.72), u(0.42), 0, Math.PI*2); ctx.fill();
+
+  // Dark hollow eye sockets
+  ctx.fillStyle = '#001800';
+  ctx.beginPath(); ctx.arc(u(-0.14), u(-0.76), u(0.12), 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(u( 0.14), u(-0.76), u(0.12), 0, Math.PI*2); ctx.fill();
+
+  // Glowing green irises
+  ctx.fillStyle = '#00ff44';
+  ctx.beginPath(); ctx.arc(u(-0.14), u(-0.76), u(0.07), 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(u( 0.14), u(-0.76), u(0.07), 0, Math.PI*2); ctx.fill();
+
+  // Eye glow halos
+  [u(-0.14), u(0.14)].forEach(ex => {
+    const eg = ctx.createRadialGradient(ex, u(-0.76), 0, ex, u(-0.76), u(0.22));
+    eg.addColorStop(0, 'rgba(0,255,60,0.50)'); eg.addColorStop(1, 'transparent');
+    ctx.fillStyle = eg; ctx.beginPath(); ctx.arc(ex, u(-0.76), u(0.22), 0, Math.PI*2); ctx.fill();
+  });
+
+  // Rotting grin
+  ctx.fillStyle = '#c8c090';
+  ctx.beginPath(); ctx.ellipse(0, u(-0.60), u(0.16), u(0.07), 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#0d0808';
+  for (let t = -1; t <= 1; t++) { ctx.fillRect(u(t*0.08 - 0.015), u(-0.66), u(0.028), u(0.10)); }
+
+  ctx.restore(); // head tilt
+  ctx.restore();
+
+  if (cs >= 22) {
+    ctx.fillStyle = '#44ff66';
+    ctx.font = `bold ${Math.max(9, Math.floor(cs * 0.24))}px Georgia`;
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#00cc33'; ctx.shadowBlur = 7;
+    ctx.fillText('ZOMBIE', cx, cy + s * 1.82);
+    ctx.shadowBlur = 0;
+  }
+}
+
+// ── King ──────────────────────────────────────
+function drawMazeKing(ctx, cx, cy, cs) {
+  const s   = cs * 0.40;
+  const bob = Math.sin(mazeFrameCount * 0.07) * (s * 0.04);
+  const gAl = 0.28 + 0.18 * Math.sin(mazeFrameCount * 0.06);
+
+  // Royal golden glow
+  const grd = ctx.createRadialGradient(cx, cy - s*0.4, s*0.1, cx, cy - s*0.4, s * 3.2);
+  grd.addColorStop(0,   `rgba(255,215,0,${gAl})`);
+  grd.addColorStop(0.6, `rgba(200,150,0,${gAl * 0.3})`);
+  grd.addColorStop(1,   'transparent');
+  ctx.fillStyle = grd;
+  ctx.beginPath(); ctx.arc(cx, cy - s*0.4, s * 3.2, 0, Math.PI*2); ctx.fill();
+
+  ctx.save();
+  ctx.translate(cx, cy + bob);
+  const u = v => v * s;
+
+  // Throne
+  ctx.fillStyle = '#5a5080';
+  ctx.fillRect(u(-0.62), u(0.48), u(1.24), u(0.18));       // seat
+  ctx.fillRect(u(-0.62), u(-1.02), u(0.14), u(1.50));      // left post
+  ctx.fillRect(u( 0.48), u(-1.02), u(0.14), u(1.50));      // right post
+  ctx.fillRect(u(-0.62), u(-1.05), u(1.24), u(0.14));      // top bar
+  ctx.fillRect(u(-0.62), u( 0.10), u(0.14), u(0.42));      // left armrest
+  ctx.fillRect(u( 0.48), u( 0.10), u(0.14), u(0.42));      // right armrest
+  ctx.strokeStyle = 'rgba(255,215,0,0.50)'; ctx.lineWidth = u(0.04);
+  ctx.strokeRect(u(-0.62), u(-1.05), u(1.24), u(1.65));
+
+  // Robes
+  ctx.fillStyle = '#7a30a8';
+  ctx.beginPath();
+  ctx.moveTo(u(-0.46), u(0.50));
+  ctx.bezierCurveTo(u(-0.56), u(0.68), u(-0.50), u(0.88), u(-0.30), u(0.88));
+  ctx.lineTo(u(0.30), u(0.88));
+  ctx.bezierCurveTo(u(0.50), u(0.88), u(0.56), u(0.68), u(0.46), u(0.50));
+  ctx.closePath(); ctx.fill();
+
+  // Body
+  ctx.fillStyle = '#8840c0';
+  ctx.beginPath(); ctx.ellipse(0, u(0.10), u(0.38), u(0.52), 0, 0, Math.PI*2); ctx.fill();
+
+  // Gold ermine trim on robe
+  ctx.fillStyle = '#ffd700';
+  ctx.fillRect(u(-0.40), u(-0.28), u(0.08), u(0.62));
+  ctx.fillRect(u( 0.32), u(-0.28), u(0.08), u(0.62));
+  ctx.fillStyle = '#1a1a1a';
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath(); ctx.arc(u(-0.36), u(-0.18 + i*0.16), u(0.03), 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(u( 0.36), u(-0.18 + i*0.16), u(0.03), 0, Math.PI*2); ctx.fill();
+  }
+
+  // Arms
+  ctx.fillStyle = '#8840c0';
+  ctx.beginPath(); ctx.ellipse(u(-0.46), u(-0.05), u(0.14), u(0.32),  0.2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(u( 0.46), u(-0.05), u(0.14), u(0.32), -0.2, 0, Math.PI*2); ctx.fill();
+
+  // Sceptre
+  ctx.strokeStyle = '#ffd700'; ctx.lineWidth = u(0.06); ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(u(0.55), u(0.32)); ctx.lineTo(u(0.62), u(-0.62)); ctx.stroke();
+  const orbGrd = ctx.createRadialGradient(u(0.64), u(-0.68), 0, u(0.64), u(-0.68), u(0.18));
+  orbGrd.addColorStop(0, '#fff8d0'); orbGrd.addColorStop(0.5, '#ffd700'); orbGrd.addColorStop(1, '#b8860b');
+  ctx.fillStyle = orbGrd;
+  ctx.beginPath(); ctx.arc(u(0.64), u(-0.68), u(0.16), 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,215,0,0.50)'; ctx.lineWidth = u(0.02);
+  ctx.beginPath(); ctx.arc(u(0.64), u(-0.68), u(0.22), 0, Math.PI*2); ctx.stroke();
+
+  // Head
+  ctx.fillStyle = '#f0d8b0';
+  ctx.beginPath(); ctx.arc(0, u(-0.68), u(0.38), 0, Math.PI*2); ctx.fill();
+
+  // White beard
+  ctx.fillStyle = '#e8e8e0';
+  ctx.beginPath();
+  ctx.moveTo(u(-0.28), u(-0.48));
+  ctx.bezierCurveTo(u(-0.36), u(-0.28), u(-0.32), u(0.00), u(-0.12), u(0.04));
+  ctx.lineTo(u(0.12), u(0.04));
+  ctx.bezierCurveTo(u(0.32), u(0.00), u(0.36), u(-0.28), u(0.28), u(-0.48));
+  ctx.closePath(); ctx.fill();
+
+  // Moustache
+  ctx.fillStyle = '#d0c8b0';
+  ctx.beginPath(); ctx.ellipse(u(-0.12), u(-0.56), u(0.12), u(0.05), -0.2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(u( 0.12), u(-0.56), u(0.12), u(0.05),  0.2, 0, Math.PI*2); ctx.fill();
+
+  // Kind eyes
+  ctx.fillStyle = '#224488';
+  ctx.beginPath(); ctx.arc(u(-0.13), u(-0.74), u(0.075), 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(u( 0.13), u(-0.74), u(0.075), 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(u(-0.10), u(-0.77), u(0.030), 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(u( 0.16), u(-0.77), u(0.030), 0, Math.PI*2); ctx.fill();
+
+  // Crown
+  ctx.fillStyle = '#ffd700';
+  ctx.fillRect(u(-0.34), u(-1.00), u(0.68), u(0.14));        // base band
+  [-0.28, -0.10, 0.10, 0.28].forEach((px, i) => {
+    ctx.beginPath();
+    ctx.moveTo(u(px - 0.08), u(-1.00));
+    ctx.lineTo(u(px),         u(-1.28));
+    ctx.lineTo(u(px + 0.08), u(-1.00));
+    ctx.fill();
+  });
+  ['#ff2222','#2244ff','#22cc22','#ff22ff'].forEach((gc, i) => {
+    const gx = [-0.28, -0.10, 0.10, 0.28][i];
+    const gg = ctx.createRadialGradient(u(gx), u(-1.14), 0, u(gx), u(-1.14), u(0.065));
+    gg.addColorStop(0, '#ffffff'); gg.addColorStop(0.4, gc); gg.addColorStop(1, gc + '88');
+    ctx.fillStyle = gg;
+    ctx.beginPath(); ctx.arc(u(gx), u(-1.14), u(0.065), 0, Math.PI*2); ctx.fill();
+  });
+  ctx.fillStyle = 'rgba(255,255,200,0.45)';
+  ctx.fillRect(u(-0.32), u(-1.00), u(0.64), u(0.04));
+
+  ctx.restore();
+
+  if (cs >= 22) {
+    ctx.fillStyle = '#ffd700';
+    ctx.font = `bold ${Math.max(9, Math.floor(cs * 0.26))}px Georgia`;
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#ff8800'; ctx.shadowBlur = 10;
+    ctx.fillText('THE KING', cx, cy + s * 2.12);
+    ctx.shadowBlur = 0;
+  }
+}
+
+// ── Particles ─────────────────────────────────
+const MAZE_PARTICLE_COLORS = [
+  'rgba(180,80,255,', 'rgba(80,200,255,',  'rgba(255,215,0,',
+  'rgba(255,100,200,','rgba(100,255,180,',
+];
+
+function spawnMazeParticle() {
+  if (!mazeGrid) return;
+  const { cs, ox, oy } = getMazeLayout();
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const r = Math.floor(Math.random() * MAZE_H);
+    const c = Math.floor(Math.random() * MAZE_W);
+    if (mazeGrid[r][c] === '#') continue;
+    const col  = MAZE_PARTICLE_COLORS[Math.floor(Math.random() * MAZE_PARTICLE_COLORS.length)];
+    const life = 55 + Math.random() * 55;
+    mazeParticles.push({
+      x:       ox + c*cs + Math.random()*cs,
+      y:       oy + r*cs + Math.random()*cs,
+      size:    0.5 + Math.random() * 1.8,
+      color:   col + '0.9)',
+      alpha:   0.8 + Math.random() * 0.2,
+      vx:      (Math.random() - 0.5) * 0.35,
+      vy:      -0.22 - Math.random() * 0.45,
+      life,
+      maxLife: life,
+    });
+    break;
+  }
+}
+
+function updateMazeParticles() {
+  for (let i = mazeParticles.length - 1; i >= 0; i--) {
+    const p = mazeParticles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.life--;
+    p.alpha = (p.life / p.maxLife) * 0.85;
+    if (p.life <= 0) mazeParticles.splice(i, 1);
+  }
+  if (mazeParticles.length > 180) mazeParticles.splice(0, mazeParticles.length - 180);
+}
 </script>
 </body>
 </html>
