@@ -387,7 +387,7 @@
         <div class="guardian-desc" id="gdesc"></div>
       </div>
     </div>
-    <button class="castle-btn" onclick="startCastleMaze(chosenGuardianName)">🏰 Enter the Castle →</button>
+    <button class="castle-btn" onclick="startCastleMaze()">🏰 Enter the Castle →</button>
     <button class="again-btn" onclick="restartGame()">🌿 Play Again</button>
   </div>
 </div>
@@ -1471,6 +1471,7 @@ window.addEventListener('resize', () => {
 // ─────────────────────────────────────────────
 
 const MAZE_W = 31, MAZE_H = 19;
+const MAZE_KING_ROW = 9, MAZE_KING_COL = 19;
 
 // ── Maze state ────────────────────────────────
 let mazeActive           = false;
@@ -1503,11 +1504,11 @@ function buildMazeGrid() {
   ch(9,  9, 21);
 
   // Special cells (in spiral traversal order: S → O → D → Z → K)
-  g[1][1]   = 'S';   // start
-  g[1][13]  = 'O';   // ogre   — row 1 corridor
-  g[17][15] = 'D';   // dragon — row 17 return corridor
-  g[15][13] = 'Z';   // zombie — row 15 corridor
-  g[9][19]  = 'K';   // king   — innermost chamber
+  g[1][1]            = 'S';   // start
+  g[1][13]           = 'O';   // ogre   — row 1 corridor
+  g[17][15]          = 'D';   // dragon — row 17 return corridor
+  g[15][13]          = 'Z';   // zombie — row 15 corridor
+  g[MAZE_KING_ROW][MAZE_KING_COL] = 'K';   // king   — innermost chamber
   return g;
 }
 
@@ -1531,8 +1532,12 @@ function buildMazeTorches() {
 }
 
 // ── Start / Stop ──────────────────────────────
-function startCastleMaze(guardianName) {
-  chosenGuardianName   = guardianName || 'Starspell';
+function cancelMazeAnimation() {
+  if (mazeAnimId) { cancelAnimationFrame(mazeAnimId); mazeAnimId = null; }
+}
+
+function startCastleMaze() {
+  // chosenGuardianName is already set by chooseGuardian() before this is called
   mazeGrid             = buildMazeGrid();
   mazePlayerRow        = 1;
   mazePlayerCol        = 1;
@@ -1547,13 +1552,13 @@ function startCastleMaze(guardianName) {
   document.getElementById('castle-maze-screen').classList.add('show');
   resizeMazeCanvas();
 
-  if (mazeAnimId) { cancelAnimationFrame(mazeAnimId); mazeAnimId = null; }
+  cancelMazeAnimation();
   mazeTick();
 }
 
 function stopCastleMaze() {
   mazeActive = false;
-  if (mazeAnimId) { cancelAnimationFrame(mazeAnimId); mazeAnimId = null; }
+  cancelMazeAnimation();
   document.getElementById('castle-maze-screen').classList.remove('show');
   document.getElementById('maze-encounter').classList.remove('show');
   document.getElementById('maze-victory').classList.remove('show');
@@ -1675,7 +1680,7 @@ function continueMaze() {
 
 function triggerMazeVictory() {
   mazeActive = false;
-  if (mazeAnimId) { cancelAnimationFrame(mazeAnimId); mazeAnimId = null; }
+  cancelMazeAnimation();
   renderMaze();   // final frame with player on King's cell
   document.getElementById('maze-victory-sub').textContent =
     `${chosenGuardianName} conquered the Ogre, the Dragon and the Zombie, and presented the unicorn herd to the King. The realm is saved! 🦄`;
@@ -1825,7 +1830,7 @@ function drawMazeCell(ctx, row, col, px, py, cs) {
     }
 
     // Golden shimmer intensifies near King
-    const dist = Math.hypot(row - 9, col - 19);
+    const dist = Math.hypot(row - MAZE_KING_ROW, col - MAZE_KING_COL);
     if (dist < 5) {
       ctx.fillStyle = `rgba(255,215,0,${(1 - dist/5) * 0.09})`;
       ctx.fillRect(px, py, cs, cs);
